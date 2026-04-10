@@ -6,16 +6,25 @@ import numpy as np
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 
-MODEL_PATH = os.getenv("MODEL_PATH")
+# Get model path (fallback if .env missing)
+MODEL_PATH = os.getenv("MODEL_PATH", "model.pth")
 
 app = Flask(__name__)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+# Initialize model
 model = get_model()
-model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+
+if MODEL_PATH and os.path.exists(MODEL_PATH):
+    print(f"Loading model from {MODEL_PATH}")
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+else:
+    print("Warning: model file not found. Skipping load (CI mode).")
+
 model.to(device)
 model.eval()
 
